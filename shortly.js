@@ -75,6 +75,47 @@ function(req, res) {
 /************************************************************/
 // Write your authentication routes here
 /************************************************************/
+app.get('/login', 
+function(req, res) {
+  res.render('login');
+});
+
+app.get('/signup', 
+function(req, res) {
+  res.render('signup');
+});
+
+app.post('/login', 
+  function(req, res) {
+    var username = req.body.username;
+    var password = req.body.password;
+    // does user exist
+      // if so
+      // grab salt value for username 
+      // compute hash password value for user entered password 
+      // compare hashpassword result to database stored password
+        // if passwords match 
+        // allow access to main site
+        // else 
+        // redirect 404
+    // if he does not exist 
+      // redirect to register page 
+  });
+
+app.post('/signup', 
+  function(req,res) {
+    var username = req.body.username;
+    var password = req.body.password;
+
+    // PUT THIS IN HELPER FUNCTION
+    // we assume this is a unique username
+    // grab salt value 
+    // add salt value to password 
+    // generate hashed password
+    // insert username, hashed password and salt value into users table 
+    // direct user to login site 
+
+  });
 
 
 
