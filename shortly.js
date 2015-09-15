@@ -109,6 +109,25 @@ app.post('/signup',
 
     // PUT THIS IN HELPER FUNCTION
     // we assume this is a unique username
+
+    console.log("User: " + User);
+    new User({ username: username, password: password }).fetch().then(function(user) {
+      if (user) {
+        res.send(200, user.attributes);
+      } else {
+      console.log('before create');
+        Users.create({
+          username: username
+        })
+        .then(function(user) {
+          console.log('after create');
+          res.send(200, user);
+        }).catch(function(err) {
+          console.log(err);
+        });
+      }
+    });
+
     // grab salt value 
     // add salt value to password 
     // generate hashed password
