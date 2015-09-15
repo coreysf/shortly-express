@@ -121,7 +121,8 @@ app.post('/signup',
         })
         .then(function(user) {
           console.log('after create');
-          res.send(200, user);
+          // res.send(200, user);
+          res.redirect('login');
         }).catch(function(err) {
           console.log(err);
         });
