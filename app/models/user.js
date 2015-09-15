@@ -2,7 +2,6 @@ var db = require('../config');
 var bcrypt = require('bcrypt-nodejs');
 var Promise = require('bluebird');
 var Link = require('./link');
-var crypto = require('crypto');
 
 
 var User = db.Model.extend({
@@ -13,45 +12,24 @@ var User = db.Model.extend({
 
   initialize: function() {
     this.on('creating', function(model, attrs, options){
-      console.log("user being created!");
-      var password = model.get('password');
       return new Promise(function(resolve, reject) {
-        console.log("Inside promise!");
-        bcrypt.genSalt(10, function(err, result) {
-          if (err) {
-            throw err;
-          }
-          bcrypt.hash(password, result, null, function(err, hash) {
-              console.log("Inside hash!");
-              if (err) {
-                reject(err);
-              }
+        // logging 
+        console.log(model);
+        console.log("options: " + options);
+        console.log("user being created!");
+        
+        // 
+        var password = model.get('password');
+        var hash = bcrypt.hashSync(password);
 
-              model.set('password', hash);
-              model.set('salt', result);
-              resolve(model);
-          });
-        });
+        console.log("password: " + password);
+        console.log('hash: ' + hash);
+        model.set('password', hash);
+        
+        console.log('isUser: ' + bcrypt.compareSync(password, hash));
+        resolve(model);
+        reject('error');
       });
-
-     
-
-       
-      //     // Load hash from your password DB.
-      // bcrypt.compare("bacon", hash, function(err, res) {
-      //     // res == true
-      // });
-      // bcrypt.compare("veggies", hash, function(err, res) {
-      //     // res = false
-      // });
-
-
-      // var shasum = crypto.createHash('sha1');
-      // console.log("shasum: " + shasum);
-      // shasum.update(model.get('password'));
-      // console.log("shasum after update: " + shasum);
-      // model.set('password', shasum.digest('hex'));
-      // model.set('salt', shasum);
     });
   }
 });

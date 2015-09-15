@@ -2,6 +2,7 @@ var express = require('express');
 var util = require('./lib/utility');
 var partials = require('express-partials');
 var bodyParser = require('body-parser');
+var bcrypt = require('bcrypt-nodejs');
 
 
 var db = require('./app/config');
@@ -89,8 +90,39 @@ app.post('/login',
   function(req, res) {
     var username = req.body.username;
     var password = req.body.password;
+
+    new User({username: username}).fetch().then(function(user) {
     // does user exist
       // if so
+      if (user) {
+        // var userSalt = user.get('salt');
+        // console.log("userSalt: " + userSalt);
+        var userDbHash = user.get('password');
+        console.log("userDbHash: " + userDbHash);
+        console.log(password);
+        bcrypt.compare(password, userDbHash, function(err, result) {
+          if(err) {
+            throw err;
+          }
+          console.log("isUser: " + result);
+        });
+
+        // create new hash from password entered into login field
+        // to compare to the password hash value in the database for this user
+        // bcrypt.hash(password, userSalt, null, function(err, userEnteredHash) {
+        //     console.log("userEnteredHash: " + userEnteredHash);
+        //     console.log("userDbHash: " + userDbHash);
+        //     if (err) {
+        //       throw err;
+        //     }
+            // else if (userEnteredHash === userDbHash) {
+            //   // allow access 
+            //   console.log('access granted');
+            // }
+
+        // });
+      }
+    });
       // grab salt value for username 
       // compute hash password value for user entered password 
       // compare hashpassword result to database stored password
@@ -117,7 +149,8 @@ app.post('/signup',
       } else {
       console.log('before create');
         Users.create({
-          username: username
+          username: username,
+          password: password
         })
         .then(function(user) {
           console.log('after create');
