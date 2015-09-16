@@ -3,6 +3,7 @@ var util = require('./lib/utility');
 var partials = require('express-partials');
 var bodyParser = require('body-parser');
 var bcrypt = require('bcrypt-nodejs');
+var session = require('express-session');
 
 
 var db = require('./app/config');
@@ -23,19 +24,35 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(__dirname + '/public'));
 
+app.use(session({
+  resave: false,
+  saveUninitialized: false,
+  secret: 'Corey is an awesome guy'
+}));
 
-app.get('/', 
-function(req, res) {
+var restrict = function(req, res, next) {
+  // console.log("req: " + JSON.stringify(req));
+  if(req.session.user) {
+    console.log('permission to go to index');
+    next();
+  } 
+  else {
+    req.session.error = 'access denied';
+    console.log('restricted access to app. please log in');
+    res.redirect('login');
+  }
+};
+
+app.get('/', restrict, function(req, res) {
+  console.log("req.session within app.get ('/')" + req.session);
   res.render('index');
 });
 
-app.get('/create', 
-function(req, res) {
+app.get('/create', restrict, function(req, res) {
   res.render('index');
 });
 
-app.get('/links', 
-function(req, res) {
+app.get('/links', restrict, function(req, res) {
   Links.reset().fetch().then(function(links) {
     res.send(200, links.models);
   });
@@ -76,6 +93,8 @@ function(req, res) {
 /************************************************************/
 // Write your authentication routes here
 /************************************************************/
+
+
 app.get('/login', 
 function(req, res) {
   res.render('login');
@@ -104,34 +123,23 @@ app.post('/login',
           if(err) {
             throw err;
           }
-          console.log("isUser: " + result);
+
+          if(result) {
+            req.session.regenerate(function () {
+              console.log('user ' + user);
+              req.session.user = user;     // user??
+              req.session.success = 'Access granted';
+              res.redirect('/');
+              console.log("isUser: " + req.session.user);
+            });
+          } 
         });
-
-        // create new hash from password entered into login field
-        // to compare to the password hash value in the database for this user
-        // bcrypt.hash(password, userSalt, null, function(err, userEnteredHash) {
-        //     console.log("userEnteredHash: " + userEnteredHash);
-        //     console.log("userDbHash: " + userDbHash);
-        //     if (err) {
-        //       throw err;
-        //     }
-            // else if (userEnteredHash === userDbHash) {
-            //   // allow access 
-            //   console.log('access granted');
-            // }
-
-        // });
       }
+      else {
+        req.session.error = 'Access denied, please check username and password';
+        res.redirect('login');
+      } 
     });
-      // grab salt value for username 
-      // compute hash password value for user entered password 
-      // compare hashpassword result to database stored password
-        // if passwords match 
-        // allow access to main site
-        // else 
-        // redirect 404
-    // if he does not exist 
-      // redirect to register page 
   });
 
 app.post('/signup', 
